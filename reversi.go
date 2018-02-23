@@ -50,20 +50,42 @@ func canmove(b *Board, muver string) bool {
 func gameover(b *Board) bool {
 	var me = true
 	var you = true
-	var over = true
+	var over = false
+	var availablespots = false
+	var canyoumove = false
+	var canmemove = false
 
 	for row := 1; row < 9; row++ {
 		for col := 1; col < 9; col++ {
 			if b.board[row][col] == "-" {
-				over = false
-			} else if b.board[row][col] == "O" {
+				availablespots = true
+			}
+		}
+	}
+	for row := 1; row < 9; row++ {
+		for col := 1; col < 9; col++ {
+			if b.board[row][col] == "O" {
 				you = false
-			} else if b.board[row][col] == "S" {
+			} 
+		}
+	}
+	for row := 1; row < 9; row++ {
+		for col := 1; col < 9; col++ {
+			if b.board[row][col] == "S" {
 				me = false
 			}
 		}
 	}
+	if canmove(b,"O") {
+		canyoumove = true
+	}
+	if canmove(b,"S") {
+		canmemove = true
+	}
 	if me || you {
+		over = true
+	}
+	if canyoumove == false || canmemove == false || availablespots == false {
 		over = true
 	}
 	return over
@@ -125,43 +147,43 @@ func printboard(b *Board) {
 func makemovecurboard(b *Board, muv *Move) {
 	b.board[muv.Row][muv.Col] = muv.Mover
 	j := N(b,muv)
-	fmt.Println("N =",j)
+	//fmt.Println("N =",j)
 	fmt.Println("muv.Mover = ",muv.Mover)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row - i][muv.Col] = muv.Mover
 	}
 	j = NE(b,muv)
-	fmt.Println("NE =",j)
+	//fmt.Println("NE =",j)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row - i][muv.Col + i] = muv.Mover
 	}
 	j = E(b,muv)
-	fmt.Println("E =",j)
+	//fmt.Println("E =",j)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row][muv.Col + i] = muv.Mover
 	}
 	j = SE(b,muv)
-	fmt.Println("SE =",j)
+	//fmt.Println("SE =",j)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row + i][muv.Col + i] = muv.Mover
 	}
 	j = S(b,muv)
-	fmt.Println("S =",j)
+	//fmt.Println("S =",j)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row + i][muv.Col] = muv.Mover
 	}
 	j = SW(b,muv)
-	fmt.Println("SW =",j)
+	//fmt.Println("SW =",j)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row + i][muv.Col - i] = muv.Mover
 	}
 	j = W(b,muv)
-	fmt.Println("W =",j)
+	//fmt.Println("W =",j)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row][muv.Col - i] = muv.Mover
 	}
 	j = NW(b,muv)
-	fmt.Println("NW =",j)
+	//fmt.Println("NW =",j)
 	for i := 1; i <= j; i++ {
 		b.board[muv.Row - i][muv.Col - i] = muv.Mover
 	}
@@ -184,6 +206,17 @@ func initboard(brd *Board) {
 	brd.board[5][4] = "S"
 	brd.board[5][5] = "O"
 	brd.movenum = 0
+}
+
+func copyboard(brd *Board) (newboard Board) {
+	newboard = Board{};
+
+	for i := 0; i < SIDE; i++ {
+		for j := 0; j < SIDE; j++ {
+			newboard.board[i][j] = brd.board[i][j]
+		}
+	}
+	return
 }
 
 func N(b *Board, muv *Move) int {
@@ -339,6 +372,9 @@ func NW (b *Board, muv *Move) int {
 } 
 
 func legal (b *Board, muv *Move) bool {
+	if (b.board[muv.Row][muv.Col] != "-") {
+		return false
+	}
 	if (N(b,muv) > 0) {
 		return true
 	}
@@ -482,6 +518,7 @@ func selectmove (b *Board, muv *Move) {
 	//var balpha = STATICMIN
 	//var bbeta = STATICMAX
 	//var tempmove Move
+	//var tempscore = 0
 	var can = false
 	for row := 1; row < 9 && can == false; row++ {
 		for col := 1; col < 9 && can == false; col++ {
@@ -492,6 +529,7 @@ func selectmove (b *Board, muv *Move) {
 			}
 		}
 	}
+	//tempmove,tempscore = minimax(muv.Mover, 2, b)
 
 }
 
@@ -524,13 +562,14 @@ func selectmove (b *Board, muv *Move) {
 
 
 
-//func minimax(player string, depth int, brd Board) (m Move, boardscore int) {
-//
-//	m = Move{}
-//
-//	valueFunction := score(&brd)
-//
-//}
+func minimax(player string, depth int, brd Board) (m Move, boardscore int) {
+
+	m = Move{}
+
+	boardscore = score(&brd)
+
+	return
+}
 
 func main() {
 	var gameboard Board
@@ -545,7 +584,7 @@ func main() {
 			printboard(&gameboard)
 		}
 		if legal(&gameboard, &usermove) {
-			fmt.Println("Move is Legal!")
+			//fmt.Println("Move is Legal!")
 			makemovecurboard(&gameboard, &usermove)
 			gameboard.movenum++
 			usermove.Mover = nextmover(&gameboard,&usermove)
@@ -553,10 +592,10 @@ func main() {
 			fmt.Println("Move is Not Legal!")
 		}
 		printboard(&gameboard)
-		fmt.Println("Score is")
-		fmt.Println(score(&gameboard))
-		fmt.Println("move number is")
-		fmt.Println(gameboard.movenum)
+		//fmt.Println("Score is")
+		//fmt.Println(score(&gameboard))
+		//fmt.Println("move number is")
+		//fmt.Println(gameboard.movenum)
 		if usermove.Mover == "O" {
 			entermove(&usermove)
 		} else {
